@@ -1,0 +1,23 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run RuBot (Python)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/chatbot.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Open RuBot in Chrome",
+            "url": "http://localhost:5000",
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}

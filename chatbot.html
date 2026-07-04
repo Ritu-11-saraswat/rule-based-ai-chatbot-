@@ -143,7 +143,11 @@ async function sendMessage() {
     }
   } catch (err) {
     removeTyping();
-    appendMessage("Internet connection check karo aur dobara try karo! 😅", "bot");
+    if (window.location.protocol === 'file:') {
+      appendMessage(`Server chalana hoga. Pehle terminal mein \`python chatbot.py\` chalakar phir page refresh karo.\n\nError: ${err.message}`, "bot");
+    } else {
+      appendMessage(`Server se connection nahin ban raha. Check karo ki Flask chal raha ho.\n\nError: ${err.message}`, "bot");
+    }
   }
   isTyping = false; sendBtn.disabled = false; input.focus();
 }
