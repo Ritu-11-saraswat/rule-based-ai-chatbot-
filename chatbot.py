@@ -82,6 +82,9 @@ def chat():
     if not user_message:
         return jsonify({"error": "Message is empty"}), 400
 
+    if not CLAUDE_API_KEY:
+        return jsonify({"error": "CLAUDE_API_KEY missing. Set CLAUDE_API_KEY or ANTHROPIC_API_KEY in your environment."}), 500
+
     rule_response = check_rules(user_message)
     if rule_response:
         return jsonify({"reply": rule_response, "source": "rule"})
@@ -91,10 +94,10 @@ def chat():
         return jsonify({"reply": ai_response, "source": "ai"})
     except Exception as e:
         return jsonify({
-            "reply": "Arre yaar, kuch technical dikkat aa gayi! 😅 API key check karo chatbot.py mein.",
+            "reply": "Arre yaar, kuch technical dikkat aa gayi! 😅 Server-side error dekhon.",
             "source": "error",
             "error": str(e)
-        })
+        }), 500
 
 @app.route("/health", methods=["GET"])
 def health():
