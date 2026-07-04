@@ -167,14 +167,6 @@
 </div>
 
 <script>
-// ============================================================
-// STEP 1: https://console.anthropic.com pe jao
-// STEP 2: Free account banao
-// STEP 3: API Keys section mein key banao
-// STEP 4: Apni key ko browser localStorage mein save karo
-// ============================================================
-const API_KEY = localStorage.getItem("anthropic_api_key") || "YOUR_ANTHROPIC_API_KEY_HERE";
-// ============================================================
 
 const SYSTEM_PROMPT = `Tu ek friendly Hinglish AI chatbot hai jiska naam RuBot hai.
 Tu hamesha Hinglish mein baat karta hai — Hindi aur English naturally mix karke, jaise close dost karte hain.
@@ -189,10 +181,6 @@ let isTyping = false;
 const messagesDiv = document.getElementById("messages");
 const input = document.getElementById("userInput");
 const sendBtn = document.getElementById("sendBtn");
-
-if (API_KEY === "YOUR_ANTHROPIC_API_KEY_HERE") {
-  document.getElementById("keyBanner").style.display = "block";
-}
 
 function getTime() {
   return new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
@@ -250,29 +238,20 @@ async function sendMessage() {
   history.push({ role: "user", content: text });
   showTyping();
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("/chat", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "x-api-key": API_KEY,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 400,
-        system: SYSTEM_PROMPT,
-        messages: history.slice(-12)
-      })
+      body: JSON.stringify({ message: text, history })
     });
     const data = await res.json();
     removeTyping();
-    if (data.content && data.content[0]) {
-      const reply = data.content[0].text;
-      appendMessage(reply, "bot");
-      history.push({ role: "assistant", content: reply });
+    if (data.reply) {
+      appendMessage(data.reply, "bot");
+      history.push({ role: "assistant", content: data.reply });
     } else if (data.error) {
-      appendMessage(`Arre yaar! Error: ${data.error.message}\n\nAPI key check karo! 🔑`, "bot");
+      appendMessage(`Arre yaar! Error: ${data.error}\n\nServer ka API key check karo! 🔑`, "bot");
     }
   } catch (err) {
     removeTyping();
