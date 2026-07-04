@@ -112,4 +112,4 @@ if __name__ == "__main__":
     if not CLAUDE_API_KEY:
         print("⚠️  Pehle CLAUDE_API_KEY ya ANTHROPIC_API_KEY environment variable set karo!")
         print("   Warna AI responses nahi aayenge.\n")
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=False)
