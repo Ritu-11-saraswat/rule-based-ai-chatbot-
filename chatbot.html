@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RuBot — AI Chatbot</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #1a1333 0%, #2d1b69 50%, #1a1333 100%);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .chat-container {
+      width: 430px; height: 700px;
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #4c3baf, #7c5cbf);
+      padding: 18px 20px;
+      display: flex; align-items: center; gap: 12px;
+      flex-shrink: 0;
+    }
+    .avatar {
+      width: 46px; height: 46px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; border: 2px solid rgba(255,255,255,0.3);
+    }
+    .header-info h2 { color: #fff; font-size: 16px; font-weight: 600; }
+    .header-info p { color: rgba(255,255,255,0.75); font-size: 12px; margin-top: 2px; display: flex; align-items: center; gap: 5px; }
+    .online-dot { width: 7px; height: 7px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .key-banner {
+      background: #fff3cd; border-bottom: 1px solid #ffc107;
+      padding: 8px 14px; font-size: 12px; color: #856404;
+      text-align: center; flex-shrink: 0; display: none;
+    }
+    .key-banner a { color: #4c3baf; font-weight: 600; text-decoration: none; }
+    .messages {
+      flex: 1; overflow-y: auto; padding: 20px 16px;
+      display: flex; flex-direction: column; gap: 12px;
+      background: #f8f7ff;
+    }
+    .messages::-webkit-scrollbar { width: 4px; }
+    .messages::-webkit-scrollbar-thumb { background: #d0c8f0; border-radius: 4px; }
+    .msg-row { display: flex; align-items: flex-end; gap: 8px; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    .msg-row.user { flex-direction: row-reverse; }
+    .msg-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .msg-row.bot .msg-avatar { background: linear-gradient(135deg,#4c3baf,#7c5cbf); }
+    .msg-row.user .msg-avatar { background: linear-gradient(135deg,#667eea,#764ba2); }
+    .bubble {
+      max-width: 75%; padding: 11px 15px; border-radius: 18px;
+      font-size: 14px; line-height: 1.55; word-break: break-word;
+    }
+    .msg-row.bot .bubble {
+      background: #fff; color: #1a1a2e;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .msg-row.user .bubble {
+      background: linear-gradient(135deg, #4c3baf, #7c5cbf);
+      color: #fff; border-bottom-right-radius: 4px;
+    }
+    .typing-bubble {
+      background: #fff; padding: 13px 16px;
+      border-radius: 18px; border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .dots { display: flex; gap: 4px; align-items: center; }
+    .dots span {
+      width: 7px; height: 7px; background: #9d8fe8;
+      border-radius: 50%; animation: bounce 1.3s infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-7px)} }
+    .quick-area {
+      padding: 10px 14px 6px; display: flex; gap: 7px;
+      overflow-x: auto; background: #fff;
+      border-top: 1px solid #ede8fb; flex-shrink: 0;
+    }
+    .quick-area::-webkit-scrollbar { display: none; }
+    .qbtn {
+      white-space: nowrap; padding: 6px 13px;
+      background: #f0edfb; border: 1.5px solid #c9bff5;
+      border-radius: 20px; font-size: 12px; color: #4c3baf;
+      cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .qbtn:hover { background: #4c3baf; color: #fff; border-color: #4c3baf; }
+    .input-area {
+      padding: 12px 14px; background: #fff;
+      display: flex; gap: 9px; align-items: flex-end;
+      border-top: 1px solid #ede8fb; flex-shrink: 0;
+    }
+    textarea {
+      flex: 1; padding: 10px 15px;
+      border: 1.5px solid #ddd8f7; border-radius: 22px;
+      font-size: 14px; font-family: inherit;
+      outline: none; resize: none;
+      min-height: 42px; max-height: 100px;
+      line-height: 1.4; transition: border-color 0.2s;
+    }
+    textarea:focus { border-color: #7c5cbf; }
+    #sendBtn {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg,#4c3baf,#7c5cbf);
+      border: none; border-radius: 50%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: transform 0.15s, opacity 0.2s;
+    }
+    #sendBtn:hover { opacity: 0.9; }
+    #sendBtn:active { transform: scale(0.92); }
+    #sendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #sendBtn svg { width: 18px; height: 18px; fill: #fff; }
+    .msg-time { font-size: 10px; color: #aaa; margin-top: 3px; padding: 0 4px; }
+    .msg-row.user .msg-time { text-align: right; }
+  </style>
+</head>
+<body>
+<div class="chat-container">
+  <div class="key-banner" id="keyBanner">
+    ⚠️ API key daalo file mein — <a href="https://console.anthropic.com" target="_blank">yahan se lo (free)</a>
+  </div>
+  <div class="header">
+    <div class="avatar">🤖</div>
+    <div class="header-info">
+      <h2>RuBot</h2>
+      <p><span class="online-dot"></span> Online — AI Powered</p>
+    </div>
+  </div>
+  <div class="messages" id="messages">
+    <div class="msg-row bot">
+      <div class="msg-avatar">🤖</div>
+      <div>
+        <div class="bubble">Hey! Main hoon <b>RuBot</b> 🤖<br><br>Tumhara AI dost — bilkul ChatGPT jaisa! Kuch bhi poocho, main hoon na 😊</div>
+        <div class="msg-time">abhi</div>
+      </div>
+    </div>
+  </div>
+  <div class="quick-area">
+    <button class="qbtn" onclick="quick('Hello yaar!')">👋 Hello</button>
+    <button class="qbtn" onclick="quick('Ek mazedaar joke sunao')">😂 Joke</button>
+    <button class="qbtn" onclick="quick('Mera mood off hai, kuch batao')">😔 Mood off</button>
+    <button class="qbtn" onclick="quick('Tum kaun ho?')">🤖 Kaun ho?</button>
+    <button class="qbtn" onclick="quick('Aaj ka koi interesting fact batao')">💡 Fun fact</button>
+    <button class="qbtn" onclick="quick('Mujhe motivate karo')">🔥 Motivate</button>
+  </div>
+  <div class="input-area">
+    <textarea id="userInput" placeholder="Kuch bhi likho..." rows="1"
+      onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    <button id="sendBtn" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24"><path d="M2 21L23 12 2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STEP 1: https://console.anthropic.com pe jao
+// STEP 2: Free account banao
+// STEP 3: API Keys section mein key banao
+// STEP 4: Apni key ko browser localStorage mein save karo
+// ============================================================
+const API_KEY = localStorage.getItem("anthropic_api_key") || "YOUR_ANTHROPIC_API_KEY_HERE";
+// ============================================================
+
+const SYSTEM_PROMPT = `Tu ek friendly Hinglish AI chatbot hai jiska naam RuBot hai.
+Tu hamesha Hinglish mein baat karta hai — Hindi aur English naturally mix karke, jaise close dost karte hain.
+Tu helpful, funny, warm aur caring hai.
+Natural aur conversational jawab deta hai — kabhi zyada formal mat ban.
+Thodi emojis use kar — zyada nahi, sirf jahan naturally fit ho.
+Chhote paragraphs mein likhta hai. Kabhi kabhi follow-up question poochh.`;
+
+let history = [];
+let isTyping = false;
+
+const messagesDiv = document.getElementById("messages");
+const input = document.getElementById("userInput");
+const sendBtn = document.getElementById("sendBtn");
+
+if (API_KEY === "YOUR_ANTHROPIC_API_KEY_HERE") {
+  document.getElementById("keyBanner").style.display = "block";
+}
+
+function getTime() {
+  return new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+}
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+function quick(text) { input.value = text; sendMessage(); }
+
+function appendMessage(text, sender) {
+  const row = document.createElement("div");
+  row.className = `msg-row ${sender}`;
+  const avatar = document.createElement("div");
+  avatar.className = "msg-avatar";
+  avatar.textContent = sender === "bot" ? "🤖" : "🧑";
+  const wrap = document.createElement("div");
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.innerHTML = text.replace(/\n/g, "<br>");
+  const time = document.createElement("div");
+  time.className = "msg-time";
+  time.textContent = getTime();
+  wrap.appendChild(bubble);
+  wrap.appendChild(time);
+  row.appendChild(avatar);
+  row.appendChild(wrap);
+  messagesDiv.appendChild(row);
+  scrollDown();
+}
+
+function showTyping() {
+  const row = document.createElement("div");
+  row.className = "msg-row bot"; row.id = "typingRow";
+  const avatar = document.createElement("div");
+  avatar.className = "msg-avatar"; avatar.textContent = "🤖";
+  const tb = document.createElement("div");
+  tb.className = "typing-bubble";
+  tb.innerHTML = `<div class="dots"><span></span><span></span><span></span></div>`;
+  row.appendChild(avatar); row.appendChild(tb);
+  messagesDiv.appendChild(row); scrollDown();
+}
+function removeTyping() { const t = document.getElementById("typingRow"); if(t) t.remove(); }
+function scrollDown() { messagesDiv.scrollTop = messagesDiv.scrollHeight; }
+
+async function sendMessage() {
+  const text = input.value.trim();
+  if (!text || isTyping) return;
+  isTyping = true; sendBtn.disabled = true;
+  input.value = ""; input.style.height = "auto";
+  appendMessage(text, "user");
+  history.push({ role: "user", content: text });
+  showTyping();
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 400,
+        system: SYSTEM_PROMPT,
+        messages: history.slice(-12)
+      })
+    });
+    const data = await res.json();
+    removeTyping();
+    if (data.content && data.content[0]) {
+      const reply = data.content[0].text;
+      appendMessage(reply, "bot");
+      history.push({ role: "assistant", content: reply });
+    } else if (data.error) {
+      appendMessage(`Arre yaar! Error: ${data.error.message}\n\nAPI key check karo! 🔑`, "bot");
+    }
+  } catch (err) {
+    removeTyping();
+    appendMessage("Internet connection check karo aur dobara try karo! 😅", "bot");
+  }
+  isTyping = false; sendBtn.disabled = false; input.focus();
+}
+</script>
+</body>
+</html>
